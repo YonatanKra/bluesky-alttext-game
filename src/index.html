@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>BlueSky Alt text bot</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" defer>
+        import { AltTextBot } from './agent/find-altless-posts.ts';
+         async function start() {
+            const bot = new AltTextBot();
+            console.log(await bot.checkSinglePost('https://bsky.app/profile/yonatankra.com/post/3lczalvz7uk2l'));
+            console.log(await bot.getPosts('yonatankra.com'));
+        }
+
+        start();
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

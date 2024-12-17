@@ -17,14 +17,46 @@ export class AltTextBot {
             return e;
         }
     }
-    
+
     async login(handle: string, password: string): Promise<void> {
         await this.#agent.login({
             identifier: handle,
             password: password
         });
     }
+
+    async streamPosts(handle: string, onUpdate: (results: any) => any) {
+        while (true) {
+            try {
+                const result = await this.#agent.getAuthorFeed({
+                    actor: handle,
+                    limit: 20,
+                    cursor: undefined,
+                    filter: 'posts_with_media'
+                });
+
+                if (!result.data?.feed?.length) {
+                    console.log('No more posts');
+                    onUpdate({ done: true });
+                    break;
+                }
+
+                onUpdate({result: result.data.feed, done: !result.data.cursor});
+
+                if (!result.data.cursor) {
+                    break;
+                }
+
+            } catch (e) {
+                await new Promise(res => setTimeout(res, 5000));
+            }
+        }
+    }
 }
+
+
+
+
 
 async function parsePostUri(uri: string, agent: AtpAgent): Promise<{ repo: string; collection: string; rkey: string; }> {
     // Extract handle and post ID

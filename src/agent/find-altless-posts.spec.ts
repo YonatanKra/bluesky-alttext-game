@@ -12,7 +12,8 @@ const resetAtpAgentMock = () => {
         resolveHandle: vi.fn().mockResolvedValue({
             data: resolvedHandle
         }),
-        login: vi.fn()
+        login: vi.fn(),
+        getAuthorFeed: vi.fn(),
     };
 }
 
@@ -22,7 +23,95 @@ vi.mock('@atproto/api', () => ({
 
 describe('AltTextBot', () => {
     const postUri = 'postUri';
+    const handle = 'testUser';
+    const imageWithoutAlt = { alt: '' };
+    const imageWithAlt = { alt: 'I have Alt text!' };
+
+    const emptyFeedResponse = {
+        data: {
+            feed: [],
+            cursor: undefined,
+        },
+    };
+
+    const fullFeedResponse = {
+        data: {
+            feed: [
+                {
+                    post: {
+                        uri: 'postUri1', cid: 'postCid1',
+                        embed: {
+                            images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                            $type: 'image'
+                        },
+                        record: {
+                            embed: {
+                                images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                                $type: 'image'
+                            }
+                        }
+                    }
+                },
+                {
+                    post: {
+                        uri: 'postUri2', cid: 'postCid2',
+                        embed: {
+                            images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                            $type: 'image'
+                        },
+                        record: {
+                            embed: {
+                                images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                                $type: 'image'
+                            }
+                        }
+                    }
+                },
+            ],
+            cursor: 'nextCursor',
+        },
+    };
+
+    const fullFeedLastResponse = {
+        data: {
+            feed: [
+                {
+                    post: {
+                        uri: 'postUri1', cid: 'postCid1', embed: {
+                            images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                            $type: 'image'
+                        },
+                        record: {
+                            embed: {
+                                images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                                $type: 'image'
+                            }
+                        }
+                    }
+                },
+                {
+                    post: {
+                        uri: 'postUri2', cid: 'postCid2', embed: {
+                            images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                            $type: 'image'
+                        },
+                        record: {
+                            embed: {
+                                images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
+                                $type: 'image'
+                            }
+                        }
+                    }
+                },
+            ]
+        },
+    };
+
     let bot: AltTextBot;
+
+    function queueAgentFeedResponse(response) {
+        mockAtpAgent.getAuthorFeed.mockResolvedValueOnce(response);
+    }
 
     beforeEach(async () => {
         resetAtpAgentMock();
@@ -58,8 +147,6 @@ describe('AltTextBot', () => {
         });
 
         it('should return the post with altLess images list', async () => {
-            const imageWithoutAlt = { alt: '' };
-            const imageWithAlt = { alt: 'I have Alt text!' };
             const post = {
                 uri: 'postUri',
                 cid: 'postCid',
@@ -92,5 +179,105 @@ describe('AltTextBot', () => {
                 password: password,
             });
         });
+    });
+
+    describe('streamPosts', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('should call getAuthorFeed with the correct parameters', async () => {
+            queueAgentFeedResponse(emptyFeedResponse);
+            await bot.streamPosts(handle, () => {});
+ 
+            expect(mockAtpAgent.getAuthorFeed.mock.calls[0][0]).toEqual({
+                actor: handle,
+                limit: 20,
+                cursor: undefined,
+                filter: 'posts_with_media'
+            });
+        });
+ 
+        it('should log when there are no more posts and break', async () => {
+            queueAgentFeedResponse(emptyFeedResponse);
+
+            await bot.streamPosts(handle, () => {});
+
+            expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(1);
+        });
+
+        it('should break if no cursor is provided in the feed response', async () => {
+            queueAgentFeedResponse({
+                data: {
+                    feed: [
+                        { post: { uri: 'postUri1', cid: 'postCid1', embed: {} } },
+                        { post: { uri: 'postUri2', cid: 'postCid2', embed: {} } },
+                    ],
+                    cursor: undefined
+                }
+            });
+
+            await bot.streamPosts(handle, () => {});
+
+            expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(1);
+        });
+
+        it('should retry after 5 seconds if author feed rejected', async () => {
+            vi.useFakeTimers();
+            const fetchError = new Error('Fetch error');
+            mockAtpAgent.getAuthorFeed.mockRejectedValueOnce(fetchError);
+
+            bot.streamPosts(handle, () => {});
+            await vi.advanceTimersByTimeAsync(4999);
+            const callsBefore5Seconds = mockAtpAgent.getAuthorFeed.mock.calls.length;
+
+            await vi.advanceTimersByTimeAsync(1);
+
+            expect(callsBefore5Seconds).toBe(1);
+            expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(2);
+            vi.useRealTimers();
+        });
+
+        it('should stream posts with done set to false when cursor is truthy', async () => {
+            const spy = vi.fn();
+            queueAgentFeedResponse(fullFeedResponse);
+            queueAgentFeedResponse(fullFeedResponse);
+            queueAgentFeedResponse(fullFeedLastResponse);
+ 
+ 
+            await bot.streamPosts(handle, spy);
+
+            expect(spy.mock.calls[0][0])
+                .toEqual({result: fullFeedResponse.data.feed, done: false});
+            expect(spy.mock.calls[1][0])
+                .toEqual({result: fullFeedResponse.data.feed, done: false});
+            expect(spy.mock.calls[2][0])
+                .toEqual({result: fullFeedLastResponse.data.feed, done: true});
+        });
+ 
+ 
+        it('should send done true to callback when response cursor is empty', async () => {
+            const spy = vi.fn();
+            queueAgentFeedResponse(fullFeedLastResponse);
+ 
+            await bot.streamPosts(handle, spy);
+ 
+            expect(spy.mock.calls[0][0])
+                .toEqual({result: fullFeedLastResponse.data.feed, done: true});
+        });
+ 
+ 
+        it('should send done true to callback when feed returns empty', async () => {
+            const spy = vi.fn();
+            queueAgentFeedResponse(emptyFeedResponse);
+ 
+            await bot.streamPosts(handle, spy);
+ 
+            expect(spy.mock.calls[0][0]).toEqual({ done: true });
+        });        
     });
 });

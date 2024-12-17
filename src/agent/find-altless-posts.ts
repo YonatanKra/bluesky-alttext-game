@@ -1,8 +1,19 @@
 import { AtpAgent } from "@atproto/api";
 import { Record } from "@atproto/api/dist/client/types/app/bsky/feed/post";
 
+export interface BotPost {
+    imagesWithoutAlt: any[];
+    text: string;
+    createdAt: string;
+}
+
+export interface BotPosts {
+    results: BotPost[],
+    done: Boolean;
+}
+
 export class AltTextBot {
-    #agent: AtpAgent = new AtpAgent({ service: 'https://bsky.social' });
+    #agent: AtpAgent = new AtpAgent({ service: 'https://public.api.bsky.app' });
     #returnPostWithAltlessImages(post: { uri: string; cid: string; value: Record; }) {
         const images = post.value?.embed?.images || [];
         const imagesWithoutAlt = images.filter(img => !img.alt);
@@ -26,12 +37,14 @@ export class AltTextBot {
     }
 
     async streamPosts(handle: string, onUpdate: (results: any) => any) {
+        let cursor: any | undefined = undefined;
+
         while (true) {
             try {
                 const result = await this.#agent.getAuthorFeed({
                     actor: handle,
                     limit: 20,
-                    cursor: undefined,
+                    cursor,
                     filter: 'posts_with_media'
                 });
 
@@ -47,16 +60,33 @@ export class AltTextBot {
                     break;
                 }
 
+                cursor = result.data.cursor;
+
             } catch (e) {
                 await new Promise(res => setTimeout(res, 5000));
             }
         }
     }
+
+    #parseStreamData = (result) => result.map(({post: { record: { text, createdAt, embed} }}) => {
+        const res = {
+            text: text,
+            createdAt: createdAt,
+            imagesWithoutAlt: embed.images ? embed.images.filter(img => !img.alt) : []
+        };
+        return res;
+    });
+
+    async run(handle, callback: (results: BotPosts) => any) {
+        await this.streamPosts(handle, ({result, done}) => {
+            const parsedData = {
+                results: this.#parseStreamData(result),
+                done
+            };
+            callback(parsedData);
+        });
+    }
 }
-
-
-
-
 
 async function parsePostUri(uri: string, agent: AtpAgent): Promise<{ repo: string; collection: string; rkey: string; }> {
     // Extract handle and post ID

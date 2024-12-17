@@ -45,6 +45,8 @@ describe('AltTextBot', () => {
                             $type: 'image'
                         },
                         record: {
+                            text: 'text1',
+                            createdAt: '1139872873',
                             embed: {
                                 images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
                                 $type: 'image'
@@ -60,10 +62,54 @@ describe('AltTextBot', () => {
                             $type: 'image'
                         },
                         record: {
+                            text: 'text2',
+                            createdAt: '2139872873',
                             embed: {
                                 images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
                                 $type: 'image'
                             }
+                        }
+                    }
+                },
+            ],
+            cursor: 'nextCursor',
+        },
+    };
+
+    const fullFeedResponseWithAlt = {
+        data: {
+            feed: [
+                {
+                    post: {
+                        uri: 'postUri1', cid: 'postCid1',
+                        embed: {
+                            $type: 'image'
+                        },
+                        record: {
+                            text: 'text1',
+                            createdAt: '1139872873',
+                            embed: {
+                                $type: 'image'
+                            }
+                        }
+                    }
+                },
+                {
+                    post: {
+                        uri: 'postUri2',
+                        cid: 'postCid2',
+                        embed: {
+                            images: [imageWithAlt, imageWithAlt, imageWithAlt],
+                            $type: 'image'
+                        },
+                        record: {
+                            text: 'text2',
+                            createdAt: '2139872873',
+                            embed: {
+                                images: [imageWithAlt, imageWithAlt, imageWithAlt],
+                                $type: 'image'
+                            },
+                            $type: 'image'
                         }
                     }
                 },
@@ -82,6 +128,8 @@ describe('AltTextBot', () => {
                             $type: 'image'
                         },
                         record: {
+                            text: 'text1',
+                            createdAt: '1139872873',
                             embed: {
                                 images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
                                 $type: 'image'
@@ -96,6 +144,8 @@ describe('AltTextBot', () => {
                             $type: 'image'
                         },
                         record: {
+                            text: 'text2',
+                            createdAt: '2139872873',
                             embed: {
                                 images: [imageWithoutAlt, imageWithAlt, imageWithoutAlt],
                                 $type: 'image'
@@ -122,7 +172,7 @@ describe('AltTextBot', () => {
         expect(bot).toBeDefined();
     });
 
-    describe('checkAltInSinglePost()', () => {
+    describe('checkSinglePost()', () => {
         it('should return the error message if fetch post failed', async () => {
             const error = { message: 'error' };
             mockAtpAgent.getPost.mockRejectedValue(error);
@@ -168,7 +218,7 @@ describe('AltTextBot', () => {
         });
     });
 
-    describe('login', () => {
+    describe('login()', () => {
         it('should login using AtProto SDK', async () => {
             const handle = 'testUser';
             const password = 'testPassword';
@@ -181,7 +231,7 @@ describe('AltTextBot', () => {
         });
     });
 
-    describe('streamPosts', () => {
+    describe('streamPosts()', () => {
         beforeEach(() => {
             vi.useFakeTimers();
         });
@@ -192,8 +242,8 @@ describe('AltTextBot', () => {
 
         it('should call getAuthorFeed with the correct parameters', async () => {
             queueAgentFeedResponse(emptyFeedResponse);
-            await bot.streamPosts(handle, () => {});
- 
+            await bot.streamPosts(handle, () => { });
+
             expect(mockAtpAgent.getAuthorFeed.mock.calls[0][0]).toEqual({
                 actor: handle,
                 limit: 20,
@@ -201,11 +251,11 @@ describe('AltTextBot', () => {
                 filter: 'posts_with_media'
             });
         });
- 
+
         it('should log when there are no more posts and break', async () => {
             queueAgentFeedResponse(emptyFeedResponse);
 
-            await bot.streamPosts(handle, () => {});
+            await bot.streamPosts(handle, () => { });
 
             expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(1);
         });
@@ -221,7 +271,7 @@ describe('AltTextBot', () => {
                 }
             });
 
-            await bot.streamPosts(handle, () => {});
+            await bot.streamPosts(handle, () => { });
 
             expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(1);
         });
@@ -231,7 +281,7 @@ describe('AltTextBot', () => {
             const fetchError = new Error('Fetch error');
             mockAtpAgent.getAuthorFeed.mockRejectedValueOnce(fetchError);
 
-            bot.streamPosts(handle, () => {});
+            bot.streamPosts(handle, () => { });
             await vi.advanceTimersByTimeAsync(4999);
             const callsBefore5Seconds = mockAtpAgent.getAuthorFeed.mock.calls.length;
 
@@ -247,37 +297,100 @@ describe('AltTextBot', () => {
             queueAgentFeedResponse(fullFeedResponse);
             queueAgentFeedResponse(fullFeedResponse);
             queueAgentFeedResponse(fullFeedLastResponse);
- 
- 
+
+
             await bot.streamPosts(handle, spy);
 
             expect(spy.mock.calls[0][0])
-                .toEqual({result: fullFeedResponse.data.feed, done: false});
+                .toEqual({ result: fullFeedResponse.data.feed, done: false });
             expect(spy.mock.calls[1][0])
-                .toEqual({result: fullFeedResponse.data.feed, done: false});
+                .toEqual({ result: fullFeedResponse.data.feed, done: false });
             expect(spy.mock.calls[2][0])
-                .toEqual({result: fullFeedLastResponse.data.feed, done: true});
+                .toEqual({ result: fullFeedLastResponse.data.feed, done: true });
         });
- 
- 
+
+
         it('should send done true to callback when response cursor is empty', async () => {
             const spy = vi.fn();
             queueAgentFeedResponse(fullFeedLastResponse);
- 
+
             await bot.streamPosts(handle, spy);
- 
+
             expect(spy.mock.calls[0][0])
-                .toEqual({result: fullFeedLastResponse.data.feed, done: true});
+                .toEqual({ result: fullFeedLastResponse.data.feed, done: true });
         });
- 
- 
+
+
         it('should send done true to callback when feed returns empty', async () => {
             const spy = vi.fn();
             queueAgentFeedResponse(emptyFeedResponse);
- 
+
             await bot.streamPosts(handle, spy);
- 
+
             expect(spy.mock.calls[0][0]).toEqual({ done: true });
-        });        
+        });
+
+        it('should send the last response cursor in the next request', async () => {
+            const spy = vi.fn();
+            queueAgentFeedResponse({ data: { ...fullFeedResponse.data, cursor: 'next-0' } });
+            queueAgentFeedResponse({ data: { ...fullFeedResponse.data, cursor: 'next-1' } });
+            queueAgentFeedResponse(fullFeedLastResponse);
+
+            await bot.streamPosts(handle, spy);
+
+            expect(mockAtpAgent.getAuthorFeed.mock.calls[1][0].cursor).toBe('next-0');
+            expect(mockAtpAgent.getAuthorFeed.mock.calls[2][0].cursor).toBe('next-1');
+            expect(mockAtpAgent.getAuthorFeed).toHaveBeenCalledTimes(3);
+        });
     });
+
+    describe('run()', () => {
+
+        it('should fire the callback on every streaming event', async () => {
+            queueAgentFeedResponse(fullFeedResponse);
+            queueAgentFeedResponse(fullFeedLastResponse);
+            const spy = vi.fn();
+            await bot.run(handle, spy);
+            expect(spy).toHaveBeenCalledTimes(2);
+        });
+
+        it('should send parsed output to the callback', async () => {
+            queueAgentFeedResponse(fullFeedResponseWithAlt);
+            queueAgentFeedResponse(fullFeedLastResponse);
+            const spy = vi.fn();
+            await bot.run(handle, spy);
+
+            expect(spy.mock.calls[0][0]).toEqual({
+                results: [
+                    {
+                        imagesWithoutAlt: [],
+                        text: 'text1',
+                        createdAt: fullFeedResponseWithAlt.data.feed[0].post.record?.createdAt
+                    },
+                    {
+                        imagesWithoutAlt: [],
+                        text: 'text2',
+                        createdAt: fullFeedResponseWithAlt.data.feed[1].post.record?.createdAt
+                    },
+                ],
+                done: false
+            });
+            expect(spy.mock.calls[1][0]).toEqual({
+                results: [
+                    {
+                        imagesWithoutAlt: [imageWithoutAlt, imageWithoutAlt],
+                        text: 'text1',
+                        createdAt: fullFeedLastResponse.data.feed[0].post.record?.createdAt
+                    },
+                    {
+                        imagesWithoutAlt: [imageWithoutAlt, imageWithoutAlt],
+                        text: 'text2',
+                        createdAt: fullFeedLastResponse.data.feed[1].post.record?.createdAt
+                    },
+                ],
+                done: true
+            });
+        });
+    });
+
 });

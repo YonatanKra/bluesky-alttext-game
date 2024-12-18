@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="vvd-root">
 
 <head>
     <meta charset="UTF-8">
@@ -8,18 +8,37 @@
     <title>BlueSky Alt text bot</title>
     <link rel="stylesheet" href="styles.css">
     <script type="module" defer>
-        import { AltTextBot } from './agent/find-altless-posts.ts';
-         async function start() {
-            const bot = new AltTextBot();
-            console.log(await bot.checkSinglePost('https://bsky.app/profile/yonatankra.com/post/3lczalvz7uk2l'));
-            console.log(await bot.getPosts('yonatankra.com'));
-        }
-
-        start();
+        import { App } from './components/app.ts';
+        customElements.define('amg-app', App);
     </script>
+    <style>
+        @import '@vonage/vivid/styles/tokens/theme-light.css';
+        @import '@vonage/vivid/styles/fonts/spezia-variable.css';
+        @import '@vonage/vivid/styles/core/theme.css';
+        @import '@vonage/vivid/styles/core/typography.css';
+
+        .logo-wrapper {
+            align-items: center;
+            column-gap: 8px;
+            font: var(--vvd-typography-base-extended-bold);
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
+    <vwc-header>
+        <a class="logo-wrapper vvd-theme-alternate" href="/">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bluesky_Logo.svg/2319px-Bluesky_Logo.svg.png"
+                alt="Vivid Logo" style="width: 24px">
+            <span class="text">BlueSky Alt Meter</span>
+        </a>
+        <vwc-button slot="action-items" icon="twitter-mono"></vwc-button>
+        <vwc-button slot="action-items" icon="facebook-mono"></vwc-button>
+        <vwc-button slot="action-items" icon="heart-solid"></vwc-button>
+        <amg-app slot="app-content"></amg-app>
+    </vwc-header>
+
 </body>
 
 </html>

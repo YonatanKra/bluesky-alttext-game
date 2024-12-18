@@ -17,6 +17,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "@atproto/api": "^0.13.20"
+    "@atproto/api": "^0.13.20",
+    "@vonage/vivid": "^4.14.0"
   }
 }

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <script type="module" defer>
         import { App } from './components/app.ts';
+        import './components/heart/heart.ts';
         customElements.define('amg-app', App);
     </script>
     <style>
@@ -17,11 +18,40 @@
         @import '@vonage/vivid/styles/core/theme.css';
         @import '@vonage/vivid/styles/core/typography.css';
 
+        body {
+            margin: 0;
+        }
+
         .logo-wrapper {
+            display: flex;
             align-items: center;
             column-gap: 8px;
             font: var(--vvd-typography-base-extended-bold);
             text-decoration: none;
+        }
+
+        .logo-wrapper,
+        .logo-wrapper:hover,
+        .logo-wrapper:visited,
+        .logo-wrapper:active {
+            color: var(--vvd-color-canvas-text),
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content-child {
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .content-child {
+                width: 500px;
+            }
         }
     </style>
 </head>
@@ -33,18 +63,22 @@
                 alt="Vivid Logo" style="width: 24px">
             <span class="text">BlueSky Alt Meter</span>
         </a>
-        <a slot="action-items" href=""><vwc-button icon="github-mono"></vwc-button></a>
-        <vwc-card slot="app-content" 
-                  headline="How good are you with Alt Text?"
-                  subtitle="What’s so hard with Alt Text in BlueSky?"
-                  text="One challenge on BlueSky is that posts are immutable—you can’t edit them once they’re published. Your only options are to publish a new one or delete the old one. There’s no middle ground (at least for now!).
+        <a slot="action-items" href="https://github.com/YonatanKra/bluesky-alttext-game" target="_blank">
+            <vwc-button icon="github-mono"></vwc-button>
+        </a>
+        <div slot="app-content" class="content">
+            <vwc-card class="content-child" headline="How good are you with Alt Text?"
+                subtitle="What’s so hard with Alt Text in BlueSky?"
+                text="One challenge on BlueSky is that posts are immutable—you can’t edit them once they’re published. Your only options are to publish a new one or delete the old one. There’s no middle ground (at least for now!).
         When creating posts, many of us forget to include Alt Text. The excitement of sharing a fresh idea or the perfect image often takes priority, and accessibility features can slip our minds.
         So, how do we get better at remembering Alt Text? Practice! Let’s turn this into a fun and practical learning experience with a BlueSky Alt Text training game designed to help you build this habit effortlessly.">
-            <div slot="footer">
-                Fill in your handle and click start to find out!
-            </div>
-        </vwc-card>
-        <amg-app slot="app-content"></amg-app>
+                <div slot="footer">
+                    Fill in your handle and click start to find out!
+                </div>
+            </vwc-card>
+            <amg-app class="content-child"></amg-app>
+        </div>
+
     </vwc-header>
     <script>
         const card = document.querySelector('vwc-card');

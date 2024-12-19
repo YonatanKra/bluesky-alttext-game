@@ -1,0 +1,19 @@
+<style>
+    #progress-wrapper{
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    #progress{
+        flex: 1;
+        margin: auto;
+    }
+        
+</style>
+<div style="height: 1em; margin: 1em;" id="progress-text"></div>
+<div id="progress-wrapper">
+    <love-meter id="heart"></love-meter>
+    <vwc-progress min="0" max="100" id="progress"></vwc-progress>
+</div>

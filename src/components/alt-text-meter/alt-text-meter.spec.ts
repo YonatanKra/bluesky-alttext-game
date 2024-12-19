@@ -53,6 +53,13 @@ describe('AltTextMeter', () => {
             component.setAttribute('n-alt-less', '5');
             expect(component.nAltLess).toBe(5);
         });
+
+        it('should update the progress bar when nAltLess changes', async () => {
+            const progressBar = component.querySelector('#progress') as Progress;
+            component.nTotal = 100;
+            component.setAttribute('n-alt-less', '50');
+            expect(progressBar.value).toBe(50);
+        });
     });
 
     it('should set progress bar value to zero if nTotal is zero', async () => {
@@ -93,11 +100,11 @@ describe('AltTextMeter', () => {
         component.nAltLess = 0;
         const colorWith100 = getCssVariableValue(progressBar);
 
-        expect(colorWith10).toBe('#e61a00');
-        expect(colorWith76).toBe('#3dc200');
-        expect(colorWith55).toBe('#738c00');
-        expect(colorWith30).toBe('#b34d00');
-        expect(colorWith100).toBe('#00ff00');
+        expect(colorWith10).toBe('#1ae600');
+        expect(colorWith76).toBe('#c23d00');
+        expect(colorWith55).toBe('#8c7300');
+        expect(colorWith30).toBe('#4db300');
+        expect(colorWith100).toBe('#ff0000');
     });
 
     it('should set the meter text', async () => {
@@ -105,5 +112,19 @@ describe('AltTextMeter', () => {
         component.nTotal = 100;
         component.nAltLess = 90;
         expect(textElement?.textContent).toBe("10.00% of your posts with media have Alt Text")
+    });
+
+    it('should set the heart color according to the meter color', async () => {
+        const heart = component.querySelector('#heart') as SVGAElement;
+        component.nTotal = 100;
+        component.nAltLess = 90;
+        expect(heart.getAttribute('color')).toBe('#1ae600');
+    });
+
+    it('should match the heart percentage according meter percentage', async () => {
+        const heart = component.querySelector('#heart') as SVGAElement;
+        component.nTotal = 100;
+        component.nAltLess = 90;
+        expect(heart.getAttribute('percentage')).toBe('10');
     });
 });

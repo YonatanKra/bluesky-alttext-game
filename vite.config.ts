@@ -8,6 +8,7 @@ export default defineConfig({
     host: '127.0.0.1'
   },
   test: {
+    setupFiles: ['./setup.ts'],
     globals: true,
     environment: 'jsdom',
     coverage: {

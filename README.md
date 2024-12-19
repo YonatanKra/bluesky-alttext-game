@@ -6,6 +6,8 @@ This app helps users improve their Alt Text focus on BlueSky. The goal is to inc
 
 The App resides here:
 
+https://bskyalt.yonatankra.com/
+
 Or you can clone and host it yourself.
 
 ## Setup

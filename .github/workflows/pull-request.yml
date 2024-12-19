@@ -7,10 +7,14 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -38,4 +42,10 @@ jobs:
           threshold: 100
           publish: true
           diff: true
+
+      - name: Post coverage comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: coverage/cobertura-coverage.xml
 

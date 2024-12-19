@@ -36,6 +36,9 @@ jobs:
       - name: build
         run: npm run build
 
+      - name: Run tests
+        run: npm test -- --watch=false
+        
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

@@ -34,15 +34,6 @@ jobs:
       - name: Run tests
         run: npm test -- --watch=false
 
-      - name: Upload coverage to Codecov
-        uses: insightsengineering/coverage-action@v2
-        with:
-          path: coverage/cobertura-coverage.xml
-          fail: true
-          threshold: 100
-          publish: true
-          diff: true
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:

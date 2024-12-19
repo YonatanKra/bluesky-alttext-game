@@ -27,18 +27,28 @@
 </head>
 
 <body>
-    <vwc-header>
+    <vwc-header alternate>
         <a class="logo-wrapper vvd-theme-alternate" href="/">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bluesky_Logo.svg/2319px-Bluesky_Logo.svg.png"
                 alt="Vivid Logo" style="width: 24px">
             <span class="text">BlueSky Alt Meter</span>
         </a>
-        <vwc-button slot="action-items" icon="twitter-mono"></vwc-button>
-        <vwc-button slot="action-items" icon="facebook-mono"></vwc-button>
-        <vwc-button slot="action-items" icon="heart-solid"></vwc-button>
+        <a slot="action-items" href=""><vwc-button icon="github-mono"></vwc-button></a>
+        <vwc-card slot="app-content" 
+                  headline="How good are you with Alt Text?"
+                  subtitle="What’s so hard with Alt Text in BlueSky?"
+                  text="One challenge on BlueSky is that posts are immutable—you can’t edit them once they’re published. Your only options are to publish a new one or delete the old one. There’s no middle ground (at least for now!).
+        When creating posts, many of us forget to include Alt Text. The excitement of sharing a fresh idea or the perfect image often takes priority, and accessibility features can slip our minds.
+        So, how do we get better at remembering Alt Text? Practice! Let’s turn this into a fun and practical learning experience with a BlueSky Alt Text training game designed to help you build this habit effortlessly.">
+            <div slot="footer">
+                Fill in your handle and click start to find out!
+            </div>
+        </vwc-card>
         <amg-app slot="app-content"></amg-app>
     </vwc-header>
-
+    <script>
+        const card = document.querySelector('vwc-card');
+    </script>
 </body>
 
 </html>

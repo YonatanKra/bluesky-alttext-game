@@ -4,6 +4,8 @@ import template from './app.template.html?raw';
 import '@vonage/vivid/button';
 import '@vonage/vivid/progress';
 import '@vonage/vivid/text-field';
+import '@vonage/vivid/card';
+import '@vonage/vivid/header';
 
 function defineElements() {
     customElements.define('alt-text-meter', AltTextMeter);

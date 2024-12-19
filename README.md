@@ -1,5 +1,5 @@
 [![codecov](https://codecov.io/github/YonatanKra/bluesky-alttext-game/branch/main/graph/badge.svg?token=tODm86NDMZ)](https://codecov.io/github/YonatanKra/bluesky-alttext-game)
-
+ 
 # BlueSky Alt Text Game
 
 This app helps users improve their Alt Text focus on BlueSky. The goal is to increase the percentage of images with Alt text on the network, thereby enhancing the accessibility of posts.

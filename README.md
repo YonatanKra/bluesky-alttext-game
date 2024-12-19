@@ -1,10 +1,8 @@
 # BlueSky Alt Text Game
 
-This app helps users improve their Alt Text focus on BlueSky. In time, it will increase the amount percentage of images with Alt text in the network, hence increasing posts' a11y.
-
+This app helps users improve their Alt Text focus on BlueSky. The goal is to increase the percentage of images with Alt text on the network, thereby enhancing the accessibility of posts.
 
 The App resides here:
-
 
 Or you can clone and host it yourself.
 
@@ -36,11 +34,12 @@ To open the project with live reload in a browser, run:
 ```sh
 npm start
 ```
+
 ## Running Tests
 
 To run the tests, use the following command:
 ```sh
-npm test -- --watchAll=false
+npm test
 ```
 
 ## Contributing

@@ -41,6 +41,7 @@ function generatePackageJson() {
       fs.mkdirSync('./dist/heart', { recursive: true })
     }
     fs.writeFileSync('./dist/heart/package.json', JSON.stringify(packageJson, null, 2))
+    fs.writeFileSync('./src/components/heart/package.json', JSON.stringify(packageJson, null, 2))
   } catch (error) {
     console.error(error);
   }

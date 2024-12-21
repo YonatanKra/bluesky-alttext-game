@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -26,11 +31,11 @@ jobs:
         run: |
           LAST_COMMIT=$(git log -1 --pretty=%B)
           if [[ $LAST_COMMIT == *"(heart)"* ]]; then
-            if [[ $LAST_COMMIT == feat* ]]; then
+            if ([[ $LAST_COMMIT == feat* ]]); then
               echo "UPDATE_TYPE=minor" >> $GITHUB_ENV
-            elif [[ $LAST_COMMIT == fix* ]]; then
+            elif ([[ $LAST_COMMIT == fix* ]]); then
               echo "UPDATE_TYPE=patch" >> $GITHUB_ENV
-            elif [[ $LAST_COMMIT == BREAKING* ]]; then
+            elif ([[ $LAST_COMMIT == BREAKING* ]]); then
               echo "UPDATE_TYPE=major" >> $GITHUB_ENV
             else
               echo "No conventional commit found. Skipping release."
@@ -53,7 +58,7 @@ jobs:
         if: env.UPDATE_TYPE != ''
         run: |
           cd dist/heart
-          npm publish --access public
+          npm publish --access public --dry-run
 
       - name: Push updated package.json
         if: env.UPDATE_TYPE != ''
@@ -62,15 +67,11 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add src/components/heart/package.json
           git commit -m "chore: bump heart package version"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/YonatanKra/bluesky-alttext-game.git HEAD:main
 
       - name: Create tag
         if: env.UPDATE_TYPE != ''
         run: |
           VERSION=$(jq -r .version src/components/heart/package.json)
           git tag heart@$VERSION
-          git push origin heart@$VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/YonatanKra/bluesky-alttext-game.git heart@$VERSION

@@ -45,13 +45,15 @@ jobs:
         if: env.UPDATE_TYPE != ''
         run: BUILD_LIB=true UPDATE_TYPE=${{ env.UPDATE_TYPE }} npx vite build
 
+      - name: Authenticate with npm
+        if: env.UPDATE_TYPE != ''
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Publish package
         if: env.UPDATE_TYPE != ''
         run: |
           cd dist/heart
           npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Push updated package.json
         if: env.UPDATE_TYPE != ''

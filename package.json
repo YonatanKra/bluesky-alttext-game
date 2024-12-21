@@ -5,7 +5,8 @@
   "scripts": {
     "test": "vitest",
     "start": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "build:heart": "BUILD_LIB=true UPDATE_TYPE=patch vite build"
   },
   "keywords": [],
   "author": "",

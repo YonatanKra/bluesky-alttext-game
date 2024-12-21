@@ -2,13 +2,35 @@
 import { defineConfig } from 'vitest/config'
 import { resolve } from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 
 const isLibrary = process.env.BUILD_LIB === 'true'
 
+function getLatestVersion() {
+  try {
+    const result = execSync('npm view @yonatankra/heart-component version').toString().trim();
+    const [major, minor, patch] = result.split('.').map(Number);
+    const updateType = process.env.UPDATE_TYPE || 'patch';
+
+    switch (updateType) {
+      case 'major':
+        return `${major + 1}.0.0`;
+      case 'minor':
+        return `${major}.${minor + 1}.0`;
+      case 'patch':
+      default:
+        return `${major}.${minor}.${patch + 1}`;
+    }
+  } catch (error) {
+    return '1.0.0';
+  }
+}
+
 function generatePackageJson() {
+  const version = getLatestVersion();
   const packageJson = {
-    name: "@yonatankra/heart-component",
-    version: "1.0.0",
+    name: "@yonatan-kra/heart-component",
+    version,
     type: "module",
     files: ["./*.js"],
     main: "./heart.umd.js",
@@ -46,7 +68,7 @@ export default defineConfig({
         name: 'generate-package-json',
         closeBundle: generatePackageJson
       }]
-    },    
+    },
     emptyOutDir: true,
     watch: null,
   } : {
@@ -68,3 +90,4 @@ export default defineConfig({
     },
   },
 });
+

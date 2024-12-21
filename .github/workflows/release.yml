@@ -1,0 +1,54 @@
+name: Release Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determine update type
+        id: determine-update-type
+        run: |
+          LAST_COMMIT=$(git log -1 --pretty=%B)
+          if [[ $LAST_COMMIT == *"(heart)"* ]]; then
+            if [[ $LAST_COMMIT == feat* ]]; then
+              echo "UPDATE_TYPE=minor" >> $GITHUB_ENV
+            elif [[ $LAST_COMMIT == fix* ]]; then
+              echo "UPDATE_TYPE=patch" >> $GITHUB_ENV
+            elif [[ $LAST_COMMIT == BREAKING* ]]; then
+              echo "UPDATE_TYPE=major" >> $GITHUB_ENV
+            else
+              echo "No conventional commit found. Skipping release."
+              exit 0
+            fi
+          else
+            echo "No relevant scope found. Skipping release."
+            exit 0
+          fi
+
+      - name: Build library
+        if: env.UPDATE_TYPE != ''
+        run: BUILD_LIB=true UPDATE_TYPE=${{ env.UPDATE_TYPE }} npx vite build
+
+      - name: Publish package
+        if: env.UPDATE_TYPE != ''
+        run: |
+          cd dist/heart
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

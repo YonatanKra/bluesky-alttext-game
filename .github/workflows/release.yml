@@ -52,3 +52,23 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push updated package.json
+        if: env.UPDATE_TYPE != ''
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add src/components/heart/package.json
+          git commit -m "chore: bump heart package version"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create tag
+        if: env.UPDATE_TYPE != ''
+        run: |
+          VERSION=$(jq -r .version src/components/heart/package.json)
+          git tag heart@$VERSION
+          git push origin heart@$VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

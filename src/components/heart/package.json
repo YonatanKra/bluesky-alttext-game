@@ -1,0 +1,16 @@
+{
+    "name": "@yonatan-kra/heart-component",
+    "version": "1.0.0",
+    "type": "module",
+    "files": [
+      "dist"
+    ],
+    "main": "./heart.umd.js",
+    "module": "./heart.es.js",
+    "exports": {
+      ".": {
+        "import": "./heart.es.js",
+        "require": "./heart.umd.js"
+      }
+    }
+  }

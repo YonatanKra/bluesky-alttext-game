@@ -1,5 +1,7 @@
 [![codecov](https://codecov.io/github/YonatanKra/bluesky-alttext-game/branch/main/graph/badge.svg?token=tODm86NDMZ)](https://codecov.io/github/YonatanKra/bluesky-alttext-game)
- 
+
+![Illustration to depict a BlueSky bot. A robotic figure with fairy wings. The robot has a blue and silver metallic body, with details suggesting internal mechanics. The wings are large, delicate, and translucent. Above the robot's head floats a glowing blue butterfly with a faint halo.](./src/assets/bluesky_bot.jpg "BlueSky Bot")
+
 # BlueSky Alt Text Game
 
 This app helps users improve their Alt Text focus on BlueSky. The goal is to increase the percentage of images with Alt text on the network, thereby enhancing the accessibility of posts.

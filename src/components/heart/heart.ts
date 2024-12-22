@@ -1,47 +1,32 @@
 import heart from './heart.svg?raw';
 
-function fillHeart(svg: SVGAElement, color: string, percentage: number) {
+function fillHeart(svg: SVGElement, color: string, percentage: number) {
     // Validate percentage input (should be between 0 and 100)
     if (percentage < 0 || percentage > 100) {
         throw new Error('Percentage must be between 0 and 100');
     }
 
     // Calculate the fill height based on the SVG height and percentage
-    const svgHeight = svg.getBBox().height;
-    const fillHeight = (percentage < 30 ? 4 : percentage < 65 ? 2 : 0) + ((svgHeight / 100) * percentage);
+    restartAnimation(svg, color, percentage / 100);
+}
 
-    // Select the path element representing the heart shape
-    const path = svg.querySelector('path') as SVGPathElement;
+function restartAnimation(svg: SVGElement, color: string, ratio: number) {
+    const animate1 = svg.querySelector('#animate1') as SVGAnimateElement;
+    const animate2 = svg.querySelector('#animate2') as SVGAnimateElement;
+    const from = animate1.getAttribute('to');
 
-    // Create a new rect element to represent the fill area
-    const fillRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    fillRect.setAttribute('x', '0');
-    fillRect.setAttribute('y', `${svgHeight - fillHeight}`);
-    fillRect.setAttribute('width', '100%');
-    fillRect.setAttribute('height', `${fillHeight}`);
-    fillRect.setAttribute('fill', color);
+    // Update the 'to' attribute and color
+    animate1.setAttribute('to', `${ratio}`);
+    animate1.setAttribute('from', `${from}`);
+    animate1.parentElement?.setAttribute('stop-color', color);
+    animate2.setAttribute('to', `${ratio}`);
+    animate2.setAttribute('from', `${from}`);
 
-    // Create a mask to apply the fill inside the heart shape
-    const mask = document.createElementNS("http://www.w3.org/2000/svg", "mask");
-    mask.setAttribute('id', 'heart-mask');
-
-    const maskPath = path.cloneNode() as SVGPathElement;
-    maskPath.setAttribute('fill', 'white');
-
-    const g = svg.querySelector('g') as SVGGElement;
-    g.innerHTML = '';
-
-    mask.appendChild(maskPath);
-    g.appendChild(mask);
-
-
-    // Apply the mask to the fill rect
-    fillRect.setAttribute('mask', 'url(#heart-mask)');
-
-    // Ensure the original path remains in its original color
-    g.appendChild(path);
-
-    g.append(fillRect);
+    // Restart the animation by setting the 'begin' attribute to 'indefinite' and then triggering it
+    animate1.setAttribute('begin', '0s');
+    animate2.setAttribute('begin', '0s');
+    animate1.beginElement();
+    animate2.beginElement();
 }
 
 const DEFAULT_SIZE = 24;
@@ -52,7 +37,7 @@ export class Heart extends HTMLElement {
     #size;
 
     get #heartElement() {
-        return this.shadowRoot?.querySelector('svg') as unknown as SVGAElement;
+        return this.shadowRoot?.querySelector('svg') as unknown as SVGElement;
     }
 
     #updateHeartColor = () => {
@@ -94,7 +79,6 @@ export class Heart extends HTMLElement {
             this.#updateHeartSize();
             return;
         }
-
     }
 
     get color() {

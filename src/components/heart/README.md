@@ -30,10 +30,11 @@ The Heart component accepts the following props:
 | --------- | -------- | ---------------------------------------- |
 | `color`   | string  | Sets the hearts fill color  (defaults to red)     |
 | `percentage` | number | Sets the fill percentage (bottom to top) |
+| `size` | number | Sets the width and height of the heart (defaults to 24) |
 
 ## Example
 ```html
-<love-meter percetange="90" color="purple"></love-meter>
+<love-meter percetange="90" color="purple" size="50"></love-meter>
 ```
 
 Also see this [CodePen example](https://codepen.io/yonatankra/pen/WbejPbm?editors=1111)

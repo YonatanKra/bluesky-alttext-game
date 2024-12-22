@@ -34,8 +34,8 @@ describe('Heart Component', () => {
         it('should set the color inside the SVG', async () => {
             heartElement.setAttribute('color', 'blue');
             const svg = getSvg();
-            const fillRect = svg.querySelector('rect');
-            expect(fillRect?.getAttribute('fill')).toBe('blue');
+            const stopElement = svg.querySelector('stop');
+            expect(stopElement?.getAttribute('stop-color')).toBe('blue');
         });
     });
 
@@ -56,28 +56,41 @@ describe('Heart Component', () => {
             expect(heartElement.getAttribute('percentage')).toBe('50');
         });
 
-        it('should fill the heart with perncetage of height plus 2 when between 30 and 65', () => {
+        it('should update animation when percentage is set', () => {
             const svg = getSvg();
+            const animate1 = svg.querySelector('#animate1') as SVGAnimateElement;
+            const animate2 = svg.querySelector('#animate2') as SVGAnimateElement;
+
             heartElement.setAttribute('percentage', '50');
-            
-            const fillRect = svg.querySelector('rect');
-            expect(fillRect?.getAttribute('height')).toBe('52');
+
+            const startFrom = animate1.getAttribute('from');
+            const startTo = animate1.getAttribute('to');
+            const startFrom2 = animate2.getAttribute('from');
+            const startTo2 = animate2.getAttribute('to');
+
+            expect(startFrom).toBe('0');
+            expect(startTo).toBe('0.5');
+            expect(startFrom2).toBe('0');
+            expect(startTo2).toBe('0.5');
         });
 
-        it('should fill the heart with perncetage of height plus 4 when below 30', () => {
+        it('should update the animation from the current percentage to the new percentage', () => {
             const svg = getSvg();
-            heartElement.setAttribute('percentage', '25');
-            
-            const fillRect = svg.querySelector('rect');
-            expect(fillRect?.getAttribute('height')).toBe('29');
-        });
+            const animate1 = svg.querySelector('#animate1') as SVGAnimateElement;
+            const animate2 = svg.querySelector('#animate2') as SVGAnimateElement;
 
-        it('should fill the heart with perncetage of height when 65 and above', () => {
-            const svg = getSvg();
-            heartElement.setAttribute('percentage', '70');
+            heartElement.setAttribute('percentage', '50');
+            heartElement.setAttribute('percentage', '75');
+
+            const secondFrom = animate1.getAttribute('from');
+            const secondTo = animate1.getAttribute('to');
+            const secondFrom2 = animate2.getAttribute('from');
+            const secondTo2 = animate2.getAttribute('to');
             
-            const fillRect = svg.querySelector('rect');
-            expect(fillRect?.getAttribute('height')).toBe('70');
+            expect(secondFrom).toBe('0.5');
+            expect(secondTo).toBe('0.75');
+            expect(secondFrom2).toBe('0.5');
+            expect(secondTo2).toBe('0.75');
         });
 
         it('should throw an error for invalid percentage', () => {

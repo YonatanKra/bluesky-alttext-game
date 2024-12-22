@@ -84,4 +84,49 @@ describe('Heart Component', () => {
             expect(() => heartElement.attributeChangedCallback('percentage', '0', '150')).toThrow('Percentage must be between 0 and 100');    
         });
     });
+
+    describe('size', () => {
+        it('should init as 24', async () => {
+            expect(heartElement.size).toBe(24);
+        });
+
+        it('should reflect size attribute', () => {
+            heartElement.setAttribute('size', '50');
+            expect(heartElement.size).toBe(50);
+        });
+
+        it('should reflect the size property', async () => {
+            heartElement.size = 50;
+            expect(heartElement.getAttribute('size')).toBe('50');
+        });
+
+        it('should set the size of the SVG', async () => {
+            heartElement.setAttribute('size', '50');
+            const svg = getSvg();
+            expect(svg.getAttribute('height')).toBe('50');
+            expect(svg.getAttribute('width')).toBe('50');
+        });
+
+        it('should set the size of the SVG when property is set', async () => {
+            heartElement.size = 50;
+            const svg = getSvg();
+            expect(svg.getAttribute('height')).toBe('50');
+            expect(svg.getAttribute('width')).toBe('50');
+        });
+
+        it('should revert to latest value if invalid number', async () => {
+            heartElement.size = 50;
+            heartElement.setAttribute('size', 'abc');
+            const svg = getSvg();
+            expect(svg.getAttribute('height')).toBe('50');
+            expect(svg.getAttribute('width')).toBe('50');
+        });
+
+        it('should revert to latest value when changed to invalid value from property', async () => {
+            heartElement.size = 50;
+            (heartElement.size as any) = 'abc';
+            const svg = getSvg();
+            heartElement.size = 50;
+        });
+    });
 });

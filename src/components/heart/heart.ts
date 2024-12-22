@@ -44,9 +44,12 @@ function fillHeart(svg: SVGAElement, color: string, percentage: number) {
     g.append(fillRect);
 }
 
+const DEFAULT_SIZE = 24;
+
 export class Heart extends HTMLElement {
     #color = 'red';
     #percentage = 0;
+    #size;
 
     get #heartElement() {
         return this.shadowRoot?.querySelector('svg') as unknown as SVGAElement;
@@ -57,10 +60,23 @@ export class Heart extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['color', 'percentage'];
+        return ['color', 'percentage', 'size'];
     }
 
-    attributeChangedCallback(attributeName, _, newValue) {
+    get size() {
+        return this.#size;
+    }
+
+    set size(value: number) {
+        this.setAttribute('size', value.toString());
+    }
+
+    #updateHeartSize = () => {
+        this.#heartElement.setAttribute('width', this.#size.toString());
+        this.#heartElement.setAttribute('height', this.#size.toString());
+    }
+
+    attributeChangedCallback(attributeName, oldValue, newValue) {
         if (attributeName === 'color') {
             this.#color = newValue;
             this.#updateHeartColor();
@@ -70,6 +86,12 @@ export class Heart extends HTMLElement {
         if (attributeName === 'percentage') {
             this.#percentage = Number(newValue);
             this.#updateHeartColor();
+            return;
+        }
+
+        if (attributeName === 'size') {
+            this.#size = Number.isNaN(Number(newValue)) ? oldValue : Number(newValue);
+            this.#updateHeartSize();
             return;
         }
 
@@ -95,11 +117,19 @@ export class Heart extends HTMLElement {
         super();
         const shadow = this.attachShadow({ mode: 'open' });
         shadow.innerHTML = `
+            <style>
+                svg {
+                    transition: width 0.3s, height 0.3s;
+                }
+            </style>
             ${heart}
         `;
     }
 
     connectedCallback() {
+        if (!this.size) {
+            this.size = DEFAULT_SIZE;
+        }
         fillHeart(this.#heartElement, this.#color, this.#percentage);
     }
 }

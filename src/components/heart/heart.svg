@@ -1,15 +1,13 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg fill="#000000" height="24px" width="24px" version="1.1" id="Capa_1"
-    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-    viewBox="-2 0 36 29.6" xml:space="preserve">
-<g>
-	<path
-        d="M23.6,0c-2.9,0-5.5,1.2-7.6,3.2C13.9,1.2,11.3,0,8.4,0C3.8,0,0,3.8,0,8.4c0,5.1,7.6,10.8,16,21.2
-        c8.4-10.4,16-16.1,16-21.2C32,3.8,28.2,0,23.6,0z"
-        fill="white"
-        stroke="black"
-        stroke-width="4"
-    />
-</g>
+<svg id="svg1" class='lab__container__elt2__svg' xmlns="http://www.w3.org/2000/svg" version="1.1" width="60" height="48" viewBox="0 0 500 500">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop class="color1" offset="0" stop-color="red">
+        <animate id="animate1" attributeName="offset" begin="0s" dur="1s"  fill="freeze" from="0" to="1" />
+      </stop>
+      <stop class="color2" offset="0" stop-color="#fff">
+        <animate id="animate2" attributeName="offset" begin="0s" dur="1s"  fill="freeze" from="0" to="1" />
+      </stop>
+    </linearGradient>
+  </defs>
+  <path fill="url(#gradient)" stroke="crimson" stroke-width="10" d="M340.8,98.4c50.7,0,91.9,41.3,91.9,92.3c0,26.2-10.9,49.8-28.3,66.6L256,407.1L105,251.6c-15.8-16.6-25.6-39.1-25.6-63.9 c0-51,41.1-92.3,91.9-92.3c38.2,0,70.9,23.4,84.8,56.8C269.8,121.9,302.6,98.4,340.8,98.4"/>
 </svg>

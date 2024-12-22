@@ -14,7 +14,7 @@ To use the Heart component in your project, import it and include it in your JSX
 
 ```html
 <div>
-  <filling-heart></filling-heart>
+  <love-meter></love-meter>
 </div>
 <script type="module">
   import "@yonatan-kra//heart-component";
@@ -33,8 +33,10 @@ The Heart component accepts the following props:
 
 ## Example
 ```html
-<filling-heart percetange="90" color="purple"/>
+<love-meter percetange="90" color="purple"></love-meter>
 ```
+
+Also see this [CodePen example](https://codepen.io/yonatankra/pen/WbejPbm?editors=1111)
 
 ## Contributing
 

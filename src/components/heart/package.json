@@ -3,19 +3,19 @@
     "version": "1.0.4",
     "type": "module",
     "repository": {
-      "type": "git",
-      "url": "https://github.com/YonatanKra/bluesky-alttext-game.git",
-      "directory": "src/components/heart"
+        "type": "git",
+        "url": "git+https://github.com/YonatanKra/bluesky-alttext-game.git",
+        "directory": "src/components/heart"
     },
     "files": [
-      "."
+        "*.js"
     ],
-    "main": "./heart.umd.js",
+    "main": "./npm pack --dry-runheart.umd.js",
     "module": "./heart.es.js",
     "exports": {
-      ".": {
-        "import": "./heart.es.js",
-        "require": "./heart.umd.js"
-      }
+        ".": {
+            "import": "./heart.es.js",
+            "require": "./heart.umd.js"
+        }
     }
-  }
+}

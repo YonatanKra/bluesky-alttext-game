@@ -69,6 +69,14 @@ describe('App', () => {
         });
     });
 
+    it('should call bot run with handle when hitting enter key', async () => {
+        botMock.searchUsers.mockResolvedValue({ data: { actors: [] } });
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+        handleField.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        expect(botMock.run).toHaveBeenCalledWith('mockHandle', expect.any(Function));    
+    });
+
     it('should call bot run with handle from the text field when the start button is clicked', async () => {
         const handleField = startButtonClick(app, 'mockHandle');
         expect(botMock.run).toHaveBeenCalledWith(handleField.value, expect.any(Function));

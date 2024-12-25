@@ -44,9 +44,17 @@ export class App extends HTMLElement {
         this.#bot = new AltTextBot();
         this.#startButton?.addEventListener('click', this.#start);
         this.#handleElement?.addEventListener('input', this.#onInput);
+        this.#handleElement?.addEventListener('keydown', this.#onKeyDown);
         this.#handleElement?.addEventListener('focus', this.#onInput);
         this.#handleMenuElement?.addEventListener('click', this.#onHandleSelected);
         this.#handleMenuElement?.addEventListener('open', () => this.#handleElement.focus());
+    }
+
+    #onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            this.#handleElement.blur();
+            this.#start();
+        }
     }
 
     #onHandleSelected = (event: Event) => {

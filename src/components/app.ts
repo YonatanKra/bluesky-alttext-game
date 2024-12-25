@@ -6,6 +6,8 @@ import '@vonage/vivid/progress';
 import '@vonage/vivid/text-field';
 import '@vonage/vivid/card';
 import '@vonage/vivid/header';
+import '@vonage/vivid/menu';
+import { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
 
 function defineElements() {
     customElements.define('alt-text-meter', AltTextMeter);
@@ -15,17 +17,24 @@ defineElements();
 
 export class App extends HTMLElement {
     #bot: AltTextBot;
+    get #handleMenuElement() {
+        return this.shadowRoot?.querySelector('#handle-menu') as HTMLMenuElement;
+    }
 
     get #startButton() {
         return this.shadowRoot?.querySelector('#start-button');
     }
 
     get #handle() {
-        return (this.shadowRoot?.querySelector('[name="handle"]') as HTMLInputElement).value;
+        return this.#handleElement.value;
+    }
+
+    get #handleElement() {
+        return this.shadowRoot?.querySelector('[name="handle"]') as HTMLInputElement;
     }
 
     get #altTextMeter() {
-        return this.shadowRoot?.querySelector('alt-text-meter');
+        return this.shadowRoot?.querySelector('alt-text-meter') as AltTextMeter;
     }
 
     constructor() {
@@ -34,6 +43,36 @@ export class App extends HTMLElement {
         root.innerHTML = template;
         this.#bot = new AltTextBot();
         this.#startButton?.addEventListener('click', this.#start);
+        this.#handleElement?.addEventListener('input', this.#onInput);
+        this.#handleElement?.addEventListener('focus', this.#onInput);
+        this.#handleMenuElement?.addEventListener('click', this.#onHandleSelected);
+        this.#handleMenuElement?.addEventListener('open', () => this.#handleElement.focus());
+    }
+
+    #onHandleSelected = (event: Event) => {
+        const target = event.target as HTMLMenuElement;
+        this.#handleElement.value = target.getAttribute('text') || this.#handleElement.value;
+    }
+
+    #onInput = async () => {
+        const {data: { actors }} = await this.#bot.searchUsers(this.#handle);
+        this.#popuplateMenu(actors);
+    }
+
+    #popuplateMenu(actors: ProfileViewBasic[]) {
+        const menu = this.#handleMenuElement
+        menu.toggleAttribute('open', actors.length > 0);
+        const menuItems = menu.querySelectorAll('vwc-menu-item');
+        menuItems.forEach((item, index) => {
+            if (index < actors.length) {
+                item.setAttribute('text', actors[index]['handle']);
+                if (actors[index]['avatar']) item.querySelector('img')?.setAttribute('src', actors[index]['avatar']);
+                item.classList.remove('hidden');
+            } else {
+                item.removeAttribute('text');
+                item.classList.add('hidden');
+            }            
+        });
     }
 
     #start = async () => {
@@ -42,7 +81,7 @@ export class App extends HTMLElement {
         }
         this.#altTextMeter.nTotal = 0;
         this.#altTextMeter.nAltLess = 0;
-        this.#bot.run(this.#handle, this.#onStreamUpdate)
+        this.#bot.run(this.#handle, this.#onStreamUpdate);
     }
 
     #onStreamUpdate = (result: BotPosts) => {

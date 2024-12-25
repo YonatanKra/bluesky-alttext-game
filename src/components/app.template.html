@@ -5,9 +5,45 @@
         gap: 16px;
         padding: 16px;
     }
+
+    .hidden {
+        display: none;
+    }
+
+    vwc-menu-item img {
+        width: 24px;
+        height: 24px;
+    }
 </style>
 <div class="wrapper">
-    <vwc-text-field name="handle" label="Handle"></vwc-text-field>
+    <vwc-menu
+        role="presentation"
+		id="handle-menu"
+		open
+		trigger="auto"
+		auto-dismiss
+		aria-label="Menu example"
+	>
+        <vwc-text-field slot="anchor" name="handle" label="Handle"></vwc-text-field>
+
+		<vwc-menu-item class="hidden" id="menu-item-1">
+            <img slot="meta"/>
+        </vwc-menu-item>
+		<vwc-menu-item class="hidden" id="menu-item-2">
+            <img slot="meta"/>
+        </vwc-menu-item>
+		<vwc-menu-item class="hidden" id="menu-item-3">
+            <img slot="meta"/>
+        </vwc-menu-item>
+		<vwc-menu-item class="hidden" id="menu-item-4">
+            <img slot="meta"/>
+        </vwc-menu-item>
+		<vwc-menu-item class="hidden" id="menu-item-5">
+            <img slot="meta"/>
+        </vwc-menu-item>
+		
+	</vwc-menu>
+    
     <vwc-button id="start-button" label="Start" appearance="outlined"></vwc-button>
     <alt-text-meter></alt-text-meter>
 </div>

@@ -2,12 +2,22 @@ import { BotPosts } from '../agent/find-altless-posts';
 import { AltTextMeter } from './alt-text-meter/alt-text-meter';
 import { App } from './app';
 
+global.ResizeObserver = class {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+};
+
+HTMLElement.prototype.showPopover = vi.fn();
+HTMLElement.prototype.hidePopover = vi.fn();
+
 let botMock;
 
 const resetBotMock = () => {
     botMock = {
         run: vi.fn(),
-        streamPosts: vi.fn()
+        streamPosts: vi.fn(),
+        searchUsers: vi.fn(),
     };
 }
 
@@ -17,6 +27,22 @@ vi.mock('../agent/find-altless-posts.ts', () => ({
 
 const ELEMENT_NAME = 'app-element';
 describe('App', () => {
+    function startButtonClick(app: App, mockHandle?: string) {
+        const handleField = getHandleField();
+        handleField.value = mockHandle as string;
+        const loginButton = app.shadowRoot?.querySelector('#start-button') as HTMLButtonElement;
+        loginButton.click();
+        return handleField;
+    }
+    
+    function getHandleMenu() {
+        return app.shadowRoot?.querySelector('#handle-menu') as HTMLSelectElement;
+    }
+    
+    function getHandleField() {
+        return app.shadowRoot?.querySelector('[name="handle"]') as HTMLInputElement;
+    }
+
     let app: App;
 
     beforeAll(() => {
@@ -100,7 +126,7 @@ describe('App', () => {
         };
 
         streamCallback(input2);
-        
+
         const altTextMeterValuesAfterSecondStream = {
             nAltless: altTextMeter.nAltLess,
             nTotal: altTextMeter.nTotal
@@ -117,17 +143,428 @@ describe('App', () => {
         });
     });
 
-    // TODO:: test a user-details, alt-text-meter and alt-text-history inputs
-    // TODO:: create the components one by one
-    it('should calculate the alt text score on every stram batch and set it in the progress', async () => {
-        
+    it('should init a menu with five hidden menu items', async () => {
+        const handleMenu = getHandleMenu();
+        expect(handleMenu.querySelectorAll('vwc-menu-item.hidden').length).toBe(5);
+        expect(handleMenu.querySelectorAll('vwc-menu-item').length).toBe(5);
+    });
+
+    it('should add open attribute after results arrived', async () => {
+        const resolvedUsers = {
+            data: {
+                "actors": [
+                    {
+                        "did": "string",
+                        "handle": "string",
+                        "displayName": "string",
+                        "avatar": "string",
+                        "associated": {
+                            "lists": 0,
+                            "feedgens": 0,
+                            "starterPacks": 0,
+                            "labeler": true,
+                            "chat": {
+                                "allowIncoming": "all"
+                            }
+                        },
+                        "viewer": {
+                            "muted": true,
+                            "mutedByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "blockedBy": true,
+                            "blocking": "string",
+                            "blockingByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "following": "string",
+                            "followedBy": "string",
+                            "knownFollowers": {
+                                "count": 0,
+                                "followers": [
+                                    null
+                                ]
+                            }
+                        },
+                        "labels": [
+                            {
+                                "ver": 0,
+                                "src": "string",
+                                "uri": "string",
+                                "cid": "string",
+                                "val": "string",
+                                "neg": true,
+                                "cts": "2024-07-29T15:51:28.071Z",
+                                "exp": "2024-07-29T15:51:28.071Z",
+                                "sig": "string"
+                            }
+                        ],
+                        "createdAt": "2024-07-29T15:51:28.071Z"
+                    },
+                    {},
+                    {}
+                ]
+            }
+        };
+
+        botMock.searchUsers.mockResolvedValue(resolvedUsers);
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+
+        handleField.dispatchEvent(new Event('input'));
+        await Promise.resolve();
+
+        expect(handleMenu.hasAttribute('open')).toBe(true);
+    });
+
+    it('should remove open attribute from menu if empty results arrived', async () => {
+        botMock.searchUsers.mockResolvedValue({ data: { actors: [] } });
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+
+        handleField.dispatchEvent(new Event('input'));
+        await Promise.resolve();
+
+        expect(handleMenu.hasAttribute('open')).toBe(false);
+    });
+
+    it('should unhide and hide menu items according to searched actors', async () => {
+        const resolvedUsers = {
+            data: {
+                "actors": [
+                    {
+                        "did": "string",
+                        "handle": "string",
+                        "displayName": "string",
+                        "avatar": "string",
+                        "associated": {
+                            "lists": 0,
+                            "feedgens": 0,
+                            "starterPacks": 0,
+                            "labeler": true,
+                            "chat": {
+                                "allowIncoming": "all"
+                            }
+                        },
+                        "viewer": {
+                            "muted": true,
+                            "mutedByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "blockedBy": true,
+                            "blocking": "string",
+                            "blockingByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "following": "string",
+                            "followedBy": "string",
+                            "knownFollowers": {
+                                "count": 0,
+                                "followers": [
+                                    null
+                                ]
+                            }
+                        },
+                        "labels": [
+                            {
+                                "ver": 0,
+                                "src": "string",
+                                "uri": "string",
+                                "cid": "string",
+                                "val": "string",
+                                "neg": true,
+                                "cts": "2024-07-29T15:51:28.071Z",
+                                "exp": "2024-07-29T15:51:28.071Z",
+                                "sig": "string"
+                            }
+                        ],
+                        "createdAt": "2024-07-29T15:51:28.071Z"
+                    },
+                    {},
+                    {}
+                ]
+            }
+        };
+
+        botMock.searchUsers.mockResolvedValue(resolvedUsers);
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+
+        handleField.dispatchEvent(new Event('input'));
+        await Promise.resolve();
+
+        expect(botMock.searchUsers).toHaveBeenCalledWith('mockHandle');
+        expect(handleMenu.querySelector('#menu-item-1')?.classList.contains('hidden')).toBe(false);
+        expect(handleMenu.querySelector('#menu-item-2')?.classList.contains('hidden')).toBe(false);
+        expect(handleMenu.querySelector('#menu-item-3')?.classList.contains('hidden')).toBe(false);
+        expect(handleMenu.querySelector('#menu-item-4')?.classList.contains('hidden')).toBe(true);
+        expect(handleMenu.querySelector('#menu-item-5')?.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should populate the relevant items with the handle', async () => {
+        const resolvedUsers = {
+            data: {
+                "actors": [
+                    {
+                        "did": "string",
+                        "handle": "string",
+                        "displayName": "string",
+                        "avatar": "string",
+                        "associated": {
+                            "lists": 0,
+                            "feedgens": 0,
+                            "starterPacks": 0,
+                            "labeler": true,
+                            "chat": {
+                                "allowIncoming": "all"
+                            }
+                        },
+                        "viewer": {
+                            "muted": true,
+                            "mutedByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "blockedBy": true,
+                            "blocking": "string",
+                            "blockingByList": {
+                                "uri": "string",
+                                "cid": "string",
+                                "name": "string",
+                                "purpose": "string",
+                                "avatar": "string",
+                                "listItemCount": 0,
+                                "labels": [
+                                    {
+                                        "ver": 0,
+                                        "src": "string",
+                                        "uri": "string",
+                                        "cid": "string",
+                                        "val": "string",
+                                        "neg": true,
+                                        "cts": "2024-07-29T15:51:28.071Z",
+                                        "exp": "2024-07-29T15:51:28.071Z",
+                                        "sig": "string"
+                                    }
+                                ],
+                                "viewer": {
+                                    "muted": true,
+                                    "blocked": "string"
+                                },
+                                "indexedAt": "2024-07-29T15:51:28.071Z"
+                            },
+                            "following": "string",
+                            "followedBy": "string",
+                            "knownFollowers": {
+                                "count": 0,
+                                "followers": [
+                                    null
+                                ]
+                            }
+                        },
+                        "labels": [
+                            {
+                                "ver": 0,
+                                "src": "string",
+                                "uri": "string",
+                                "cid": "string",
+                                "val": "string",
+                                "neg": true,
+                                "cts": "2024-07-29T15:51:28.071Z",
+                                "exp": "2024-07-29T15:51:28.071Z",
+                                "sig": "string"
+                            }
+                        ],
+                        "createdAt": "2024-07-29T15:51:28.071Z"
+                    },
+                    {
+                        "handle": "mockHandle",
+                    },
+                    {
+                        "handle": "mockHandle2",
+                    }
+                ]
+            }
+        };
+
+        botMock.searchUsers.mockResolvedValue(resolvedUsers);
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+
+        handleField.dispatchEvent(new Event('input'));
+        await Promise.resolve();
+
+        expect(botMock.searchUsers).toHaveBeenCalledWith('mockHandle');
+        expect(handleMenu.querySelector('#menu-item-1')?.getAttribute('text')).toBe('string');
+        expect(handleMenu.querySelector('#menu-item-2')?.getAttribute('text')).toBe('mockHandle');
+        expect(handleMenu.querySelector('#menu-item-3')?.getAttribute('text')).toBe('mockHandle2');
+        expect(handleMenu.querySelector('#menu-item-4')?.getAttribute('text')).toBeNull();
+        expect(handleMenu.querySelector('#menu-item-5')?.getAttribute('text')).toBeNull();
+    });
+
+    it('should populate the handle field with selected value from the menu when item selected', async () => {
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        const menuItem = handleMenu.querySelector('#menu-item-1') as HTMLSelectElement;
+        await new Promise(res => requestAnimationFrame(res));
+        menuItem.setAttribute('text', 'mockHandle');
+        menuItem.click();
+        expect(handleField.value).toBe('mockHandle');
+    });
+
+    it('should leave the handle field value as is if click event is not from a menu item', async () => {
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+        handleMenu.click();
+        expect(handleField.value).toBe('mockHandle');
+    });
+
+    it('should research when focusing on the input field', async () => {
+        botMock.searchUsers.mockResolvedValue({ data: { actors: [] } });
+        const handleField = getHandleField();
+        handleField.value = 'mockHandle';
+        handleField.dispatchEvent(new Event('focus'));
+        expect(botMock.searchUsers).toHaveBeenCalledWith('mockHandle');
+    });
+
+    it('should set the user avatar in the menu item meta slot', async () => {
+        const resolvedValue = {
+            data: {
+                actors: [
+                    {
+                        handle: 'mockHandle',
+                        avatar: 'mockAvatar'
+                    }
+                ]
+            }
+        };
+        botMock.searchUsers.mockResolvedValue(resolvedValue);
+        const handleMenu = getHandleMenu();
+        const handleField = getHandleField();        
+        handleField.dispatchEvent(new Event('input'));
+        await Promise.resolve();
+        const menuItem = handleMenu.querySelector('#menu-item-1') as HTMLSelectElement;
+        expect(menuItem.querySelector('img[slot="meta"')?.getAttribute('src')).toBe('mockAvatar');
     });
 });
 
-function startButtonClick(app: App, mockHandle?: string) {
-    const handleField = app.shadowRoot?.querySelector('[name="handle"]') as HTMLInputElement;
-    handleField.value = mockHandle;
-    const loginButton = app.shadowRoot?.querySelector('#start-button') as HTMLButtonElement;
-    loginButton.click();
-    return handleField;
-}
+

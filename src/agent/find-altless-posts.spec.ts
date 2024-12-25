@@ -14,6 +14,7 @@ const resetAtpAgentMock = () => {
         }),
         login: vi.fn(),
         getAuthorFeed: vi.fn(),
+        searchActorsTypeahead: vi.fn()
     };
 }
 
@@ -390,6 +391,14 @@ describe('AltTextBot', () => {
                 ],
                 done: true
             });
+        });
+    });
+
+    describe('searchUsers()', () => {
+        it('should search for users with a given string', async () => {
+            const searchString = 'test';
+            await bot.searchUsers(searchString);
+            expect(mockAtpAgent.searchActorsTypeahead).toHaveBeenCalledWith({q: searchString});
         });
     });
 

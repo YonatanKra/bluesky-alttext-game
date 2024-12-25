@@ -13,6 +13,10 @@ export interface BotPosts {
 }
 
 export class AltTextBot {
+    async searchUsers(searchString: string) {
+        return this.#agent.searchActorsTypeahead({q: searchString});
+    }
+    
     #agent: AtpAgent = new AtpAgent({ service: 'https://public.api.bsky.app' });
     #returnPostWithAltlessImages(post: { uri: string; cid: string; value: Record; }) {
         const images = post.value?.embed?.images || [];
@@ -38,7 +42,7 @@ export class AltTextBot {
 
     async streamPosts(handle: string, onUpdate: (results: any) => any) {
         let cursor: any | undefined = undefined;
-
+        
         while (true) {
             try {
                 const result = await this.#agent.getAuthorFeed({

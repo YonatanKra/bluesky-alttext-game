@@ -663,6 +663,7 @@ describe('App', () => {
 
         });
     });
+    
     describe('endTime', () => {
         it('should default to 100', async () => {
             expect(app.endTime).toBe(100);

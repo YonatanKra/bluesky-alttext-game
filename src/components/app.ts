@@ -85,7 +85,7 @@ export class App extends HTMLElement {
     }
 
     connectedCallback() {
-        this.#setStartAndEndTime();
+        this.#syncStartAndEndTime();
     }
 
     #onKeyDown = (event: KeyboardEvent) => {
@@ -137,15 +137,7 @@ export class App extends HTMLElement {
         if (!this.#data.length) {
             return;
         }
-        // Extract the createdAt values as timestamps
-        const createdAtValues = this.#data.map(post => new Date(post.createdAt).getTime());
-
-        // Find the minimum and maximum createdAt values
-        const firstPostDate = new Date(Math.min(...createdAtValues)).getTime();
-        const latestPostDate = new Date(Math.max(...createdAtValues)).getTime();
-        const diff = latestPostDate - firstPostDate;
-        const cutOffEndDate = latestPostDate - diff * (100 - this.#endTime) / 100;
-        const cutOffStartDate = latestPostDate - diff * (100 - this.#startTime) / 100;
+        const { cutOffEndDate, cutOffStartDate } = getCutoffDates(getMinMaxDates(this.#data), this.#endTime, this.#startTime);
         this.#altTextMeter.nTotal = 0;
         this.#altTextMeter.nAltLess = 0;
         this.#updateAltTextMeter(this.#data.filter(data => {
@@ -164,8 +156,22 @@ export class App extends HTMLElement {
         this.#updateDataByTime();
     }
 
-    #setStartAndEndTime() {
+    #syncStartAndEndTime() {
         this.setAttribute('end-time', this.#endTime.toString());
         this.setAttribute('start-time', this.#startTime.toString());
     }
+}
+
+function getMinMaxDates(posts: BotPost[]) {
+    const createdAtValues = posts.map(post => new Date(post.createdAt).getTime());
+    const firstPostDate = new Date(Math.min(...createdAtValues)).getTime();
+    const latestPostDate = new Date(Math.max(...createdAtValues)).getTime();
+    return { firstPostDate, latestPostDate };
+}
+
+function getCutoffDates({latestPostDate, firstPostDate}, endTime, startTime) {
+    const diff = latestPostDate - firstPostDate;
+    const cutOffEndDate = latestPostDate - diff * (100 - endTime) / 100;
+    const cutOffStartDate = latestPostDate - diff * (100 - startTime) / 100;
+    return { cutOffEndDate, cutOffStartDate };
 }

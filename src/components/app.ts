@@ -1,4 +1,4 @@
-import { AltTextBot, BotPosts } from '../agent/find-altless-posts';
+import { AltTextBot, type BotPost, type BotPosts } from '../agent/find-altless-posts';
 import { AltTextMeter } from './alt-text-meter/alt-text-meter';
 import template from './app.template.html?raw';
 import '@vonage/vivid/button';
@@ -16,6 +16,40 @@ function defineElements() {
 defineElements();
 
 export class App extends HTMLElement {
+    static get observedAttributes() {
+        return ['end-time', 'start-time'];
+    }
+
+    attributeChangedCallback(name: string, _: string, newValue: string) {
+        if (name === 'end-time') {
+            this.#endTime = Number(newValue);
+            this.#updateDataByTime();
+        }
+        if (name === 'start-time') {
+            this.#startTime = Number(newValue);
+            this.#updateDataByTime();
+        }
+    }
+
+    #startTime = 0;
+    get startTime() {
+        return this.#startTime;
+    }
+
+    set startTime(value: number) {
+        this.setAttribute('start-time', value.toString());
+    }
+
+    #endTime = 100;
+
+    get endTime() {
+        return this.#endTime;
+    }
+
+    set endTime(value: number) {
+        this.setAttribute('end-time', value.toString());
+    }
+
     #bot: AltTextBot;
     get #handleMenuElement() {
         return this.shadowRoot?.querySelector('#handle-menu') as HTMLMenuElement;
@@ -48,6 +82,10 @@ export class App extends HTMLElement {
         this.#handleElement?.addEventListener('focus', this.#onInput);
         this.#handleMenuElement?.addEventListener('click', this.#onHandleSelected);
         this.#handleMenuElement?.addEventListener('open', () => this.#handleElement.focus());
+    }
+
+    connectedCallback() {
+        this.#setStartAndEndTime();
     }
 
     #onKeyDown = (event: KeyboardEvent) => {
@@ -87,13 +125,47 @@ export class App extends HTMLElement {
         if (!this.#handle) {
             return;
         }
+        this.#data.length = 0;
         this.#altTextMeter.nTotal = 0;
         this.#altTextMeter.nAltLess = 0;
         this.#bot.run(this.#handle, this.#onStreamUpdate);
     }
 
+    #data: BotPost[] = [];
+
+    #updateDataByTime() {
+        if (!this.#data.length) {
+            return;
+        }
+        // Extract the createdAt values as timestamps
+        const createdAtValues = this.#data.map(post => new Date(post.createdAt).getTime());
+
+        // Find the minimum and maximum createdAt values
+        const firstPostDate = new Date(Math.min(...createdAtValues)).getTime();
+        const latestPostDate = new Date(Math.max(...createdAtValues)).getTime();
+        const diff = latestPostDate - firstPostDate;
+        const cutOffEndDate = latestPostDate - diff * (100 - this.#endTime) / 100;
+        const cutOffStartDate = latestPostDate - diff * (100 - this.#startTime) / 100;
+        this.#altTextMeter.nTotal = 0;
+        this.#altTextMeter.nAltLess = 0;
+        this.#updateAltTextMeter(this.#data.filter(data => {
+            const postDate = new Date(data.createdAt).getTime();
+            return postDate <= cutOffEndDate && postDate >= cutOffStartDate;
+        }));
+    }
+
+    #updateAltTextMeter = (result: BotPost[]) => {
+        this.#altTextMeter.nTotal += result.length;
+        this.#altTextMeter.nAltLess += result.filter(result => result.imagesWithoutAlt.length).length;
+    }
+
     #onStreamUpdate = (result: BotPosts) => {
-        this.#altTextMeter.nTotal += result.results.length;
-        this.#altTextMeter.nAltLess += result.results.filter(result => result.imagesWithoutAlt.length).length;
+        this.#data = [...this.#data, ...result.results];
+        this.#updateDataByTime();
+    }
+
+    #setStartAndEndTime() {
+        this.setAttribute('end-time', this.#endTime.toString());
+        this.setAttribute('start-time', this.#startTime.toString());
     }
 }

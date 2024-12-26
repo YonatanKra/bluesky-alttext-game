@@ -7,6 +7,8 @@ import '@vonage/vivid/text-field';
 import '@vonage/vivid/card';
 import '@vonage/vivid/header';
 import '@vonage/vivid/menu';
+import '@vonage/vivid/range-slider';
+import { type RangeSlider } from '@vonage/vivid/range-slider';
 import { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
 
 function defineElements() {
@@ -71,6 +73,10 @@ export class App extends HTMLElement {
         return this.shadowRoot?.querySelector('alt-text-meter') as AltTextMeter;
     }
 
+    get #rangeSlider() {
+        return this.shadowRoot?.querySelector('#range-slider') as RangeSlider;
+    }
+
     constructor() {
         super();
         const root = this.attachShadow({mode: "open"});
@@ -82,6 +88,10 @@ export class App extends HTMLElement {
         this.#handleElement?.addEventListener('focus', this.#onInput);
         this.#handleMenuElement?.addEventListener('click', this.#onHandleSelected);
         this.#handleMenuElement?.addEventListener('open', () => this.#handleElement.focus());
+        this.#rangeSlider?.addEventListener('change', (event) => {
+            this.endTime = this.#rangeSlider.end;
+            this.startTime = this.#rangeSlider.start;
+        });
     }
 
     connectedCallback() {

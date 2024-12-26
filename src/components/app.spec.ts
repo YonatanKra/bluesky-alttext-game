@@ -663,7 +663,7 @@ describe('App', () => {
 
         });
     });
-    
+
     describe('endTime', () => {
         it('should default to 100', async () => {
             expect(app.endTime).toBe(100);
@@ -750,6 +750,44 @@ describe('App', () => {
             expect(altTextMeter.nTotal).toBe(4);
 
         });
+    });
+
+    it('should change data according to range slider change', async () => {
+        const rangeSlider = app.shadowRoot?.querySelector('#range-slider') as HTMLInputElement;
+        const altTextMeter = app.shadowRoot?.querySelector('alt-text-meter') as AltTextMeter;
+
+        startButtonClick(app, 'mockHandle');
+        const streamCallback = botMock.run.mock.calls[0][1];
+
+        const input1: BotPosts = {
+            results: [
+                {
+                    imagesWithoutAlt: [],
+                    text: '',
+                    createdAt: '2024-12-25T19:19:46.560Z'
+                },
+                {
+                    imagesWithoutAlt: ['image1'],
+                    text: '',
+                    createdAt: '2024-06-25T19:19:46.560Z'
+                },
+                {
+                    imagesWithoutAlt: ['image1'],
+                    text: '',
+                    createdAt: '2023-12-25T19:19:46.560Z'
+                }
+            ],
+            done: false
+        };
+
+        streamCallback(input1);
+
+        rangeSlider.end = 75;
+        rangeSlider.start = 25;
+        rangeSlider.dispatchEvent(new Event('change'));
+
+        expect(altTextMeter.nAltLess).toBe(1);
+        expect(altTextMeter.nTotal).toBe(1);
     });
 });
 
